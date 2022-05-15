@@ -166,16 +166,5 @@ describe("Quantum Token Scenario", function() {
         });
 
         // reflection setters
-        it('updateGasForProcessing works', async() => {
-            await token.connect(admin).updateGasForProcessing(400000);
-            expect(await token.gasForProcessing()).to.equal(400000);
-            await expect(token.connect(admin).updateGasForProcessing(600000)).to.be.revertedWith("QCONE: gasForProcessing must be between 200,000 and 500,000");
-            await expect(token.connect(admin).updateGasForProcessing(100000)).to.be.revertedWith("QCONE: gasForProcessing must be between 200,000 and 500,000");
-            await expect(token.connect(admin).updateGasForProcessing(400000)).to.be.revertedWith("QCONE: Cannot update gasForProcessing to same value");
-        });
-
-        it('updateGasForProcessing can be called only by the owner', async() => {
-            await expect(token.updateGasForProcessing(400000)).to.be.revertedWith("Ownable: caller is not the owner");
-        });
     });
 });

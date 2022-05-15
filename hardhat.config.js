@@ -1,7 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
-require("@tenderly/hardhat-tenderly")
 
 require("dotenv").config();
 const { BSCSCAN_API_KEY, NODE_RPC_URL, PRIVATE_KEY } = process.env;
@@ -26,10 +25,6 @@ module.exports = {
     compilers: [{version: "0.8.4"},
     {version: "0.6.6"}],
   },
-  tenderly: {
-		username: "angadsinghagarwal",
-		project: "sea"
-	},
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
@@ -38,7 +33,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.NODE_RPC_URL
+        url: process.env.NODE_RPC_URL_MAIN
       }
     },
     BSCTestnet: {
@@ -51,7 +46,7 @@ module.exports = {
       network_id: 97
     },
     BSCMainnet: {
-      url: process.env.NODE_RPC_URL,
+      url: process.env.NODE_RPC_URL_MAIN,
       accounts: [`0x${PRIVATE_KEY}`],
       networkCheckTimeout: 20000,
       skipDryRun: true,
