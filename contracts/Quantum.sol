@@ -12,7 +12,6 @@ import "./PancakeSwap/IPancakeV2Router01.sol";
 import "./PancakeSwap/IPancakeV2Router02.sol";
 
 import "./DividendDistributor.sol";
-import "hardhat/console.sol";
 
 contract Quantum is ERC20, Ownable, ERC20Burnable {
     using SafeMath for uint256;
@@ -20,12 +19,13 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     DividendDistributor distributor;
     address public distributorAddress;
 
-    uint256 distributorGas = 500000;
-    uint256 minimumTokenBalanceForDividends;
+    uint256 public distributorGas = 500000;
+    uint256 public minimumTokenBalanceForDividends;
 
 /////////////////////////////
     uint256 public totalDividendsDistributed;
     uint256 private constant TOTAL_SUPPLY = 21000000;
+    uint256 public minimumBuy             = 1000;
 
     IPancakeV2Router02 public pancakeV2Router;
     address public pancakeV2Pair;
@@ -67,6 +67,13 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
       totalFee: 900         //9%
     });
 
+    feeRatesStruct public transferFees = feeRatesStruct(
+    { reflections: 0,     //0%
+      marketingWallet: 0, //0%
+      LP: 100,            //1%
+      totalFee: 100       //1%
+    });
+
     uint public PERCENTAGE_MULTIPLIER = 10000;
 
     //mapping(address => uint256) private _balances;
@@ -75,27 +82,12 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     mapping (address => bool) isDividendExempt;
 
     mapping(address => bool) private _excludedFromAntiSniper;
-    
-    modifier antiSniper(address from, address to, address callee){
-        uint256 size1;
-        uint256 size2;
-        uint256 size3;
-        assembly {
-            size1 := extcodesize(callee)
-            size2 := extcodesize(to)
-            size3 := extcodesize(from)
-        }
-        if(!_excludedFromAntiSniper[from]
-            && !_excludedFromAntiSniper[to] && !_excludedFromAntiSniper[callee])
-                require(!(size1 > 0 || size2 > 0 || size3 > 0),"SmartNodes: Sniper Detected");
-        _;
-    }
 
     constructor() ERC20("Quantum 1", "QCONE") {
         uint256 _cap = TOTAL_SUPPLY.mul(10**decimals());
         swapTokensAtAmount = TOTAL_SUPPLY.mul(2).div(10**6); // 0.002%
 
-        address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // testnet
+        address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // testnet 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
         distributor = new DividendDistributor(_router);
         distributorAddress = address(distributor);
         minimumTokenBalanceForDividends = 10;
@@ -121,25 +113,43 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
 
         _excludedFromAntiSniper[address(this)] = true;
         _excludedFromAntiSniper[pancakeV2Pair] = true;
-
+        _excludedFromAntiSniper[_router] = true;
         //isDividendExempt[0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF] = true;
         
         transferOwnership(ADMIN_WALLET);    
         _mint(ADMIN_WALLET, _cap);
     }
-    
+
+
+    modifier antiSniper(address from, address to, address callee){
+        uint256 size1;
+        uint256 size2;
+        uint256 size3;
+        assembly {
+            size1 := extcodesize(callee)
+            size2 := extcodesize(to)
+            size3 := extcodesize(from)
+        }
+
+        if(!_excludedFromAntiSniper[from]
+            && !_excludedFromAntiSniper[to] && !_excludedFromAntiSniper[callee]) {
+                require(!(size1 > 0 || size2 > 0 || size3 > 0),"Quantum: Sniper Detected");
+            }
+        _;
+    }
+
     function setSwapTokensAtAmount(uint256 amount) external onlyOwner {
         swapTokensAtAmount = amount;
     }
 
-    function calcPercent(uint amount, uint percentBP) internal view returns (uint){
+    function calcPercent(uint amount, uint percentBP) internal view returns (uint) {
         return amount.mul(percentBP).div(PERCENTAGE_MULTIPLIER);
     }
 
     function _transfer(address sender, address recipient, uint256 amount) internal virtual override antiSniper(sender, recipient, msg.sender) {
         require(sender    != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
-
+        require(balanceOf(recipient) < totalSupply().mul(125).div(10000), "BEP20: user cannot hold more than 1.25% of the total supply");
         require(balanceOf(sender) >= amount, "BEP20: transfer amount exceeds balance");
         
         if (amount == 0) {
@@ -157,7 +167,6 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             sender != owner() &&
             recipient != owner()
         ) {
-            console.log("contractTokenBalance", contractTokenBalance);
             inSwapAndLiquify = true;
 
             swapAndLiquify(totalLP_fee);
@@ -169,7 +178,6 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             uint256 oldBalance = address(this).balance;
             swapTokensForEth(balanceOf(address(this)));
             uint256 newBalance = address(this).balance;
-            console.log("old new", oldBalance, newBalance);
             try distributor.deposit{value: newBalance.sub(oldBalance)}() {} catch {}
             totalReflection_fee = 0;
 
@@ -179,43 +187,45 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         uint256 totalContractFee = 0;
 
         if(!isExcludedFromTxFees[sender] && !isExcludedFromTxFees[recipient]) {
-            
             feeRatesStruct memory appliedFee;
-
 
             if(isAutomatedMarketMakerPair[sender]) {
                 appliedFee = buyFees;
+                require(amount >= minimumBuy.mul(10**decimals()), "Minimum amount of tokens purchased should be 1000");
             }
-            
-            else {   
+
+            if(isAutomatedMarketMakerPair[recipient]) {   
                 appliedFee = sellFees;
+            }
+
+            else {
+                appliedFee = transferFees;
             }
 
             marketing_fee       += calcPercent(amount, appliedFee.marketingWallet);
             totalReflection_fee += calcPercent(amount, appliedFee.reflections);
             totalLP_fee         += calcPercent(amount, appliedFee.LP);
             totalContractFee     = calcPercent(amount, appliedFee.totalFee);
-
             super._transfer(sender, address(this), totalContractFee);
-            console.log("swap");
         }
 
         uint256 sendToRecipient = amount.sub(totalContractFee);
         super._transfer(sender, recipient, sendToRecipient);
 
         if(!isDividendExempt[sender]) {
-            setBalance(sender, balanceOf(sender)); 
+            //setBalance(sender, balanceOf(sender));
+            uint256 senderBalance =  balanceOf(sender);
+            { try distributor.setShare(sender, senderBalance) {} catch {} }
         }
         if(!isDividendExempt[recipient]) { 
-            setBalance(recipient, balanceOf(recipient)); 
+            //setBalance(recipient, balanceOf(recipient));
+            { try distributor.setShare(recipient, balanceOf(recipient)) {} catch {} }
         }
         try distributor.process(distributorGas) {} catch {}
-
     }
 
     function setBalance(address account, uint256 newBalance) internal {
         if (newBalance >= minimumTokenBalanceForDividends) {
-            console.log("1");
             { try distributor.setShare(account, newBalance) {} catch {} }
         } else {
             { try distributor.setShare(account, 0) {} catch {} }
@@ -338,7 +348,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     }
 
     function setDistributorSettings(uint256 gas) external onlyOwner {
-        require(gas < 750000);
+        require(gas < 750000, "Gas should be less than 750000");
         distributorGas = gas;
     }
 

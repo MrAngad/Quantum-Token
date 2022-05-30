@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
 require("dotenv").config();
-const { BSCSCAN_API_KEY, NODE_RPC_URL, PRIVATE_KEY } = process.env;
+const { PRIVATE_KEY } = process.env;
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -39,10 +39,10 @@ module.exports = {
     BSCTestnet: {
       url: process.env.NODE_RPC_URL,
       accounts: [`0x${PRIVATE_KEY}`],
-      networkCheckTimeout: 20000,
+      networkCheckTimeout: 2000000,
       skipDryRun: true,
-      gas: 7000000,
-      gasPrice: 25000000000,
+      // gas: 7000000,
+      // gasPrice: 25000000000,
       network_id: 97
     },
     BSCMainnet: {

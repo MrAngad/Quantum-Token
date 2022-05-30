@@ -7,9 +7,9 @@ const { utils } = require("ethers")
 const ADMIN_WALLET           = "0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF";
 const MARKETING_WALLET       = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
 
-const panCakeV2RouterAddress = "0xD99D1c33F9fC3444f8101754aBC46c52416550D1";
-const WETH_ADDRESS           = "0xae13d989dac2f0debff460ac112a837c89baa7cd";
-const FACTORY_ADDRESS        = "0x6725f303b657a9451d8ba641348b6761a6cc7a17";
+const panCakeV2RouterAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
+const WETH_ADDRESS           = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
+const FACTORY_ADDRESS        = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
 
 const DECIMAL_ZEROS   = "000000000000000000"; // 18 zeros
 const formatDecimals  = 1000000000000000000;
@@ -28,7 +28,7 @@ const LP_sell         = 200;
 const totalFee_sell   = 900;
 
 describe("Quantum Token Scenario", function() {
-    let token, admin, users, panCakeRouter, panCakeFactory, pairAddress, panCakePair, funds;
+    let token, rewardToken, admin, users, panCakeRouter, panCakeFactory, pairAddress, panCakePair, funds;
 
     before(async function() {
         await HRE.network.provider.request({method: 'hardhat_impersonateAccount', params: [ADMIN_WALLET]});
@@ -39,6 +39,7 @@ describe("Quantum Token Scenario", function() {
         const QuantumToken = await HRE.ethers.getContractFactory("Quantum");
         token              = await QuantumToken.deploy();
         await token.deployed();
+        rewardToken    = await ethers.getContractAt("IERC20", "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56");
     });
 
     describe('Deployment', () => {
@@ -165,6 +166,22 @@ describe("Quantum Token Scenario", function() {
             await expect(token.includeInFees(users[2].address)).to.be.revertedWith("Ownable: caller is not the owner");
         });
 
-        // reflection setters
+        // antisniper test
+        it('antisniper works', async() => {
+            expect(await token.testAntiSniper(users[2].address, users[1].address)).to.equal("in");
+            await expect(token.testAntiSniper(rewardToken.address, users[1].address)).to.be.revertedWith("Quantum: Sniper Detected");
+        });
+    }); 
+
+    describe('Setter functions', () => {
+        it('setDistributionSettings works', async() => {
+            await token.connect(admin).setDistributorSettings(650000);
+            expect(await token.distributorGas()).to.equal(650000);
+            await expect(token.connect(admin).setDistributorSettings(850000)).to.be.revertedWith("Gas should be less than 750000");
+        });
+        it('excludeFromFees can be called only by the owner', async() => {
+            await expect(token.setDistributorSettings(850000)).to.be.revertedWith("Ownable: caller is not the owner");
+        });
+
     });
 });

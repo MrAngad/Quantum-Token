@@ -19,12 +19,12 @@ async function main() {
 
   await token.deployed();
 
-  await hre.tenderly.persistArtifacts({
-    name: "QCONE",
-    address:token.address
-  });
+  // await hre.tenderly.persistArtifacts({
+  //   name: "QCONE",
+  //   address:token.address
+  // });
 
-  console.log("Greeter deployed to:", token.address);
+  console.log("Token deployed to:", token.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -4,14 +4,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./IDividendDistributor.sol";
-import "hardhat/console.sol";
 
 import "./PancakeSwap/IPancakeV2Factory.sol";
 import "./PancakeSwap/IPancakeV2Pair.sol";
 import "./PancakeSwap/IPancakeV2Router01.sol";
 import "./PancakeSwap/IPancakeV2Router02.sol";
-
-import "hardhat/console.sol";
 
 contract DividendDistributor is IDividendDistributor {
     using SafeMath for uint256;
@@ -40,7 +37,7 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
     uint256 public minPeriod = 1 hours;
-    uint256 public minDistribution = 1 * (10 ** 18);
+    uint256 public minDistribution = 2000 * (10 ** 18);
 
     uint256 currentIndex;
 
@@ -99,7 +96,6 @@ contract DividendDistributor is IDividendDistributor {
 
     function process(uint256 gas) external override onlyToken {
         uint256 shareholderCount = shareholders.length;
-        console.log("process");
         if(shareholderCount == 0) { return; }
 
         uint256 gasUsed = 0;
@@ -111,8 +107,9 @@ contract DividendDistributor is IDividendDistributor {
             if(currentIndex >= shareholderCount){
                 currentIndex = 0;
             }
-            console.log("distribute to ", shareholders[currentIndex]);
+            
             if(shouldDistribute(shareholders[currentIndex])){
+
                 distributeDividend(shareholders[currentIndex]);
             }
 
