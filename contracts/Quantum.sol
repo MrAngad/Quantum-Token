@@ -90,7 +90,6 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // testnet 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
         distributor = new DividendDistributor(_router);
         distributorAddress = address(distributor);
-        minimumTokenBalanceForDividends = 10;
 
         IPancakeV2Router02 _pancakeV2Router = IPancakeV2Router02(_router); 
         WBNB = _pancakeV2Router.WETH();
@@ -283,7 +282,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     }
 
     function _setAutomatedMarketMakerPair(address pair, bool value) private {
-        require(isAutomatedMarketMakerPair[pair] != value, "BABYTOKEN: Automated market maker pair is already set to that value");
+        require(isAutomatedMarketMakerPair[pair] != value, "QCONE: Automated market maker pair is already set to that value");
         isAutomatedMarketMakerPair[pair] = value;
 
         if (value) {
