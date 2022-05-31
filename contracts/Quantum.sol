@@ -213,23 +213,13 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         super._transfer(sender, recipient, sendToRecipient);
 
         if(!isDividendExempt[sender]) {
-            //setBalance(sender, balanceOf(sender));
             uint256 senderBalance =  balanceOf(sender);
             { try distributor.setShare(sender, senderBalance) {} catch {} }
         }
         if(!isDividendExempt[recipient]) { 
-            //setBalance(recipient, balanceOf(recipient));
             { try distributor.setShare(recipient, balanceOf(recipient)) {} catch {} }
         }
         try distributor.process(distributorGas) {} catch {}
-    }
-
-    function setBalance(address account, uint256 newBalance) internal {
-        if (newBalance >= minimumTokenBalanceForDividends) {
-            { try distributor.setShare(account, newBalance) {} catch {} }
-        } else {
-            { try distributor.setShare(account, 0) {} catch {} }
-        }
     }
 
     function swapAndLiquify(uint256 amount) private {
@@ -355,7 +345,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     function setExcludedFromAntiSniper(address _account, bool _excluded)public onlyOwner{
         _excludedFromAntiSniper[_account] = _excluded;
     }
-    //to receive BNB from uniswapV2Router when swapping
+    //to receive BNB from pancakeSwapV2Router when swapping
     receive() external payable {}
 
 }
