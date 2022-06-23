@@ -32,16 +32,15 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     address public rewardToken;
 
     uint256 public swapTokensAtAmount;
-    uint256 public gasForProcessing;
 
     // How the contract balance needs to be allocated
     uint256 private totalReflection_fee;
     uint256 private totalLP_fee;
     uint256 marketing_fee;
     
-    address public constant ADMIN_WALLET = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
-    address public LP_recipient          = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
-    address public MARKETING_WALLET      = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
+    address public constant ADMIN_WALLET = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
+    address public LP_recipient          = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
+    address public MARKETING_WALLET      = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
     address public WBNB;
 
     bool public inSwapAndLiquify = false;
@@ -87,16 +86,18 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         uint256 _cap = TOTAL_SUPPLY.mul(10**decimals());
         swapTokensAtAmount = TOTAL_SUPPLY.mul(2).div(10**6); // 0.002%
 
-        address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // testnet 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
+        //address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // mainnet 
+        address _router = 0xD99D1c33F9fC3444f8101754aBC46c52416550D1;
+        
         distributor = new DividendDistributor(_router);
         distributorAddress = address(distributor);
 
         IPancakeV2Router02 _pancakeV2Router = IPancakeV2Router02(_router); 
         WBNB = _pancakeV2Router.WETH();
-
         // Create a pancakeswap pair for this new token
         pancakeV2Pair = IPancakeV2Factory(_pancakeV2Router.factory())
         .createPair(address(this), WBNB);
+
 
         // set the rest of the contract variables
         pancakeV2Router = _pancakeV2Router; 
@@ -113,8 +114,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         _excludedFromAntiSniper[address(this)] = true;
         _excludedFromAntiSniper[pancakeV2Pair] = true;
         _excludedFromAntiSniper[_router] = true;
-        //isDividendExempt[0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF] = true;
-        
+
         transferOwnership(ADMIN_WALLET);    
         _mint(ADMIN_WALLET, _cap);
     }
@@ -167,7 +167,6 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             recipient != owner()
         ) {
             inSwapAndLiquify = true;
-
             swapAndLiquify(totalLP_fee);
             totalLP_fee = 0;
 
@@ -184,19 +183,16 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         }
         
         uint256 totalContractFee = 0;
-
         if(!isExcludedFromTxFees[sender] && !isExcludedFromTxFees[recipient]) {
             feeRatesStruct memory appliedFee;
 
             if(isAutomatedMarketMakerPair[sender]) {
                 appliedFee = buyFees;
                 require(amount >= minimumBuy.mul(10**decimals()), "Minimum amount of tokens purchased should be 1000");
-            }
-
-            if(isAutomatedMarketMakerPair[recipient]) {   
+            } 
+            else if(isAutomatedMarketMakerPair[recipient]) { 
                 appliedFee = sellFees;
-            }
-
+            } 
             else {
                 appliedFee = transferFees;
             }
@@ -205,6 +201,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             totalReflection_fee += calcPercent(amount, appliedFee.reflections);
             totalLP_fee         += calcPercent(amount, appliedFee.LP);
             totalContractFee     = calcPercent(amount, appliedFee.totalFee);
+
             super._transfer(sender, address(this), totalContractFee);
         }
 
@@ -212,15 +209,25 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         super._transfer(sender, recipient, sendToRecipient);
 
         if(!isDividendExempt[sender]) {
-            uint256 senderBalance =  balanceOf(sender);
-            { try distributor.setShare(sender, senderBalance) {} catch {} }
+            //uint256 senderBalance =  balanceOf(sender);
+            setShare(sender);
+            //{ try distributor.setShare(sender, senderBalance) {} catch {} }
         }
         if(!isDividendExempt[recipient]) { 
-            { try distributor.setShare(recipient, balanceOf(recipient)) {} catch {} }
+            setShare(recipient);
+            //{ try distributor.setShare(recipient, balanceOf(recipient)) {} catch {} }
         }
         try distributor.process(distributorGas) {} catch {}
     }
-
+    function setShare(address _user) internal {
+        uint256 balance =  balanceOf(_user);
+        if(balance > 2000 * 10 ** 18) {
+            { try distributor.setShare(_user, balance) {} catch {} }
+        } 
+        else {
+            { try distributor.setShare(_user, 0) {} catch {} }
+        }
+    }
     function swapAndLiquify(uint256 amount) private {
         // split the contract balance into halves
         uint256 half = amount.div(2);
