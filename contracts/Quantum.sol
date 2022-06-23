@@ -20,7 +20,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     address public distributorAddress;
 
     uint256 public distributorGas = 500000;
-    uint256 public minimumTokenBalanceForDividends;
+    uint256 public minimumTokenBalanceForDividends = 2000;
 
 /////////////////////////////
     uint256 public totalDividendsDistributed;
@@ -29,7 +29,6 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
 
     IPancakeV2Router02 public pancakeV2Router;
     address public pancakeV2Pair;
-    address public rewardToken;
 
     uint256 public swapTokensAtAmount;
 
@@ -148,9 +147,12 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     function _transfer(address sender, address recipient, uint256 amount) internal virtual override antiSniper(sender, recipient, msg.sender) {
         require(sender    != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
-        require(balanceOf(recipient) < totalSupply().mul(125).div(10000), "BEP20: user cannot hold more than 1.25% of the total supply");
         require(balanceOf(sender) >= amount, "BEP20: transfer amount exceeds balance");
         
+        if (recipient != owner() && !isAutomatedMarketMakerPair[recipient]) {
+            require(balanceOf(recipient) < totalSupply().mul(125).div(10000), "BEP20: user cannot hold more than 1.25% of the total supply");
+        }
+
         if (amount == 0) {
             super._transfer(sender, recipient, 0);
             return;
@@ -219,15 +221,17 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         }
         try distributor.process(distributorGas) {} catch {}
     }
+
     function setShare(address _user) internal {
         uint256 balance =  balanceOf(_user);
-        if(balance > 2000 * 10 ** 18) {
+        if(balance > minimumTokenBalanceForDividends * 10 ** 18) {
             { try distributor.setShare(_user, balance) {} catch {} }
         } 
         else {
             { try distributor.setShare(_user, 0) {} catch {} }
         }
     }
+
     function swapAndLiquify(uint256 amount) private {
         // split the contract balance into halves
         uint256 half = amount.div(2);
