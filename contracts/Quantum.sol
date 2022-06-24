@@ -85,8 +85,8 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         uint256 _cap = TOTAL_SUPPLY.mul(10**decimals());
         swapTokensAtAmount = TOTAL_SUPPLY.mul(2).div(10**6); // 0.002%
 
-        //address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // mainnet 
-        address _router = 0xD99D1c33F9fC3444f8101754aBC46c52416550D1;
+        address _router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // mainnet 
+        //address _router = 0xD99D1c33F9fC3444f8101754aBC46c52416550D1; // testnet
         
         distributor = new DividendDistributor(_router);
         distributorAddress = address(distributor);

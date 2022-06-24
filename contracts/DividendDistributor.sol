@@ -21,8 +21,8 @@ contract DividendDistributor is IDividendDistributor {
         uint256 totalRealised;
     }
 
-    // IERC20 BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); // mainnet
-    IERC20 BUSD = IERC20(0xC7a7C693586EA12B09fc4613cC398B47A96517F9); // testnet dummy
+    IERC20 BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); // mainnet
+    //IERC20 BUSD = IERC20(0xC7a7C693586EA12B09fc4613cC398B47A96517F9); // testnet dummy
     address WBNB;
     IPancakeV2Router02 public pancakeV2Router;
     address[] shareholders;
