@@ -211,13 +211,10 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         super._transfer(sender, recipient, sendToRecipient);
 
         if(!isDividendExempt[sender]) {
-            //uint256 senderBalance =  balanceOf(sender);
             setShare(sender);
-            //{ try distributor.setShare(sender, senderBalance) {} catch {} }
         }
         if(!isDividendExempt[recipient]) { 
             setShare(recipient);
-            //{ try distributor.setShare(recipient, balanceOf(recipient)) {} catch {} }
         }
         try distributor.process(distributorGas) {} catch {}
     }
