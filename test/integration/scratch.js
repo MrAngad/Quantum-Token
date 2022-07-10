@@ -4,16 +4,16 @@ const { expect } = require("chai");
 require("bignumber.js");
 const { utils } = require("ethers");
 
-// const ADMIN_WALLET           = "0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF";
-// const panCakeV2RouterAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-// const WETH_ADDRESS           = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
-// const FACTORY_ADDRESS        = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
+const ADMIN_WALLET           = "0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF";
+const panCakeV2RouterAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
+const WETH_ADDRESS           = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
+const FACTORY_ADDRESS        = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
 
  
-const ADMIN_WALLET           = "0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF";
-const panCakeV2RouterAddress = "0xd99d1c33f9fc3444f8101754abc46c52416550d1";
-const WETH_ADDRESS           = "0xae13d989dac2f0debff460ac112a837c89baa7cd ";
-const FACTORY_ADDRESS        = "0x6725f303b657a9451d8ba641348b6761a6cc7a17";
+// const ADMIN_WALLET           = "0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF";
+// const panCakeV2RouterAddress = "0xd99d1c33f9fc3444f8101754abc46c52416550d1";
+// const WETH_ADDRESS           = "0xae13d989dac2f0debff460ac112a837c89baa7cd ";
+// const FACTORY_ADDRESS        = "0x6725f303b657a9451d8ba641348b6761a6cc7a17";
 
 const DECIMAL_ZEROS   = "000000000000000000"; // 18 zeros
 const formatDecimals  = 1000000000000000000;
@@ -35,25 +35,24 @@ describe("Quantum Token Scenario", function() {
         rewardToken    = await ethers.getContractAt("IERC20", "0xC7a7C693586EA12B09fc4613cC398B47A96517F9");
         panCakeRouter  = await ethers.getContractAt("IPancakeV2Router02", panCakeV2RouterAddress);
         panCakeFactory = await ethers.getContractAt("IPancakeV2Factory", FACTORY_ADDRESS);
-        //pairAddress = await panCakeFactory.getPair(WETH_ADDRESS, token.address);
+        pairAddress = await panCakeFactory.getPair(WETH_ADDRESS, token.address);
 
-        panCakePair = await HRE.ethers.getContractAt("IPancakeV2Pair", "0x0C1EAA58aa09105057Ffe99abBf93d4950ad6EFD");
+        panCakePair = await HRE.ethers.getContractAt("IPancakeV2Pair", pairAddress);
 
         users = await ethers.getSigners();
         await users[0].sendTransaction({to: ADMIN_WALLET, value: funds}); // Send some funds to admin wallet
         await users[2].sendTransaction({to: ADMIN_WALLET, value: funds}); // Send some funds to admin wallet
         await users[3].sendTransaction({to: ADMIN_WALLET, value: funds}); // Send some funds to admin wallet
 
-        // await token.connect(admin).approve(panCakeV2RouterAddress, '40000000' + DECIMAL_ZEROS); // 40M to pancake router
-        // await panCakeRouter.connect(admin).addLiquidityETH(token.address, '100000' + DECIMAL_ZEROS, 0, 0, ADMIN_WALLET, (Date.now() + 100000), 
-        // {value: ethers.utils.parseEther('1000')}); // provide 1000 BNB + 100000 token liquidity to pancakeswap
+        await token.connect(admin).approve(panCakeV2RouterAddress, '40000000' + DECIMAL_ZEROS); // 40M to pancake router
+        await panCakeRouter.connect(admin).addLiquidityETH(token.address, '100000' + DECIMAL_ZEROS, 0, 0, ADMIN_WALLET, (Date.now() + 100000), 
+        {value: ethers.utils.parseEther('1000')}); // provide 1000 BNB + 100000 token liquidity to pancakeswap
         
     });
 
     describe('Deployment', () => {
         it("Scenario where user buy's 100 tokens and sells 100 tokens ", async() => {
-            console.log("r ", panCakePair);
-            return
+
             // set lp recipient 
             await token.connect(admin).setLPRecipient(users[19].address);
             expect(await token.LP_recipient()).to.equal(users[19].address);
@@ -64,6 +63,7 @@ describe("Quantum Token Scenario", function() {
 
             let MARKETING_WALLET = await token.MARKETING_WALLET();
             let LP_recipient     = await token.LP_recipient();
+
             console.log("Admin Wallet - ", await token.ADMIN_WALLET());
             console.log("Marketing Wallet - ", MARKETING_WALLET);
             console.log("LP Wallet - ", LP_recipient);

@@ -195,6 +195,3 @@ describe("Quantum Token Scenario", function() {
         ]);
     }
 });
-
-// command to check eth balance
-// why does it crash on changing 

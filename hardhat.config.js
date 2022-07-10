@@ -33,7 +33,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-         url: process.env.NODE_RPC_URL
+         url: process.env.NODE_RPC_URL_MAIN
         //url: "https://data-seed-prebsc-2-s3.binance.org:8545/"
       }
     },

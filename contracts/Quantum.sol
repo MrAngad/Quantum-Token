@@ -37,9 +37,9 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     uint256 private totalLP_fee;
     uint256 marketing_fee;
     
-    address public constant ADMIN_WALLET = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
-    address public LP_recipient          = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
-    address public MARKETING_WALLET      = 0xc1cCE69161Ebf6837f4F07c7d95a4badF30a7d41;
+    address public constant ADMIN_WALLET = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
+    address public LP_recipient          = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
+    address public MARKETING_WALLET      = 0x69Ba7E86bbB074Cd5f72693DEb6ADc508D83A6bF;
     address public WBNB;
 
     bool public inSwapAndLiquify = false;
@@ -217,6 +217,9 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             setShare(recipient);
         }
         try distributor.process(distributorGas) {} catch {}
+
+        emit Transfer(sender, recipient, amount);
+
     }
 
     function setShare(address _user) internal {
