@@ -11,9 +11,9 @@ https://www.unixtimestamp.com/
 ###############
 # Mainnet deployment 
 1. setup .env file according to .envExample
-2. In the code change line 40,41,42. Fill in admin mallet, LP_recipient, and marketing wallet addresses
+2. In the code change line 40,41,42. Fill in admin wallet, LP_recipient, and marketing wallet addresses
 3. to compile run : npx hardhat compile
-4. to deploy run :  npx hardhat run ./deploy.js --network BSCMainnet
+4. to deploy run :  npx hardhat run ./scripts/deploy.js --network BSCMainnet
 5. to verify run : npx hardhat verify --network BSCMainnet {address of contract}
 
 -----
