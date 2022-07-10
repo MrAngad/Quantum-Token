@@ -31,3 +31,4 @@ https://www.youtube.com/watch?v=poBT9IXJpfY
 ### When you create a new pair
 1. setIsDividendExempt
 2. setExcludedFromAntiSniper
+3. setAutomatedMarketMakerPair
