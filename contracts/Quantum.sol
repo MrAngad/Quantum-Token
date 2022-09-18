@@ -149,8 +149,12 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
         require(recipient != address(0), "BEP20: transfer to the zero address");
         require(balanceOf(sender) >= amount, "BEP20: transfer amount exceeds balance");
         
-        if (recipient != owner() && !isAutomatedMarketMakerPair[recipient]) {
-            require(balanceOf(recipient) < totalSupply().mul(125).div(10000), "BEP20: user cannot hold more than 1.25% of the total supply");
+        if (recipient != owner() && sender != owner() && !isAutomatedMarketMakerPair[recipient]) {
+            uint256 adjAmt = amount;
+            if(isAutomatedMarketMakerPair[sender]) {
+                adjAmt = amount.sub(calcPercent(amount, buyFees.totalFee));
+            }
+            require(balanceOf(recipient) + adjAmt < totalSupply().mul(125).div(10000), "BEP20: user cannot hold more than 1.25% of the total supply");
         }
 
         if (amount == 0) {

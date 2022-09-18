@@ -138,14 +138,14 @@ describe("Quantum Token Scenario", function() {
             contractBalance = (await token.balanceOf(token.address)) / formatDecimals;
             console.log("contract balance: ", contractBalance);
             console.log("marketing balance: ", marketingFee);
-            console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
-            console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[5].address), users[5].address);
+            // console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
+            // console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[5].address), users[5].address);
 
-            console.log("After buy price and liquidity");
-            console.log("busd balance", await rewardToken.balanceOf(ADMIN_WALLET));
-            console.log("------------------------balance = ", await token.balanceOf(users[4].address));
+            // console.log("After buy price and liquidity");
+            // console.log("busd balance", await rewardToken.balanceOf(ADMIN_WALLET));
+            // console.log("------------------------balance = ", await token.balanceOf(users[4].address));
 
             //////////////////////
             // BUY
@@ -169,20 +169,23 @@ describe("Quantum Token Scenario", function() {
             contractBalance = (await token.balanceOf(token.address)) / formatDecimals;
             console.log("contract balance: ", contractBalance);
             console.log("marketing balance: ", marketingFee);
-            console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
-            console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[4].address), users[4].address);
+            // console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
+            // console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[4].address), users[4].address);
 
                         //////////////////////
             // BUY
             console.log("After buy price and liquidity");
+            await token.connect(admin).transfer(users[4].address, '262500' + DECIMAL_ZEROS);
+            console.log(await token.balanceOf(users[4].address));
+
             await panCakeRouter.connect(users[4]).swapExactETHForTokensSupportingFeeOnTransferTokens(
                 0, // accept any amount of Tokens
                 path.reverse(),
                 users[1].address,
                 new Date().getTime(), {
-                    value: ethers.utils.parseEther((parseFloat(QCONEPrice)*3100).toString())
+                    value: ethers.utils.parseEther((parseFloat(QCONEPrice)*200100).toString())
                 }
             )
 
@@ -196,10 +199,10 @@ describe("Quantum Token Scenario", function() {
             contractBalance = (await token.balanceOf(token.address)) / formatDecimals;
             console.log("contract balance: ", contractBalance);
             console.log("marketing balance: ", marketingFee);
-            console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
-            console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
-            console.log("busd balance", await rewardToken.balanceOf(users[4].address), users[4].address);
+            // console.log("busd balance, address", await rewardToken.balanceOf(ADMIN_WALLET), ADMIN_WALLET);
+            // console.log("busd balance", await rewardToken.balanceOf(users[0].address), users[0].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[1].address), users[1].address);
+            // console.log("busd balance", await rewardToken.balanceOf(users[4].address), users[4].address);
         });
     });
 
