@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./PancakeSwap/IPancakeV2Factory.sol";
@@ -13,7 +14,7 @@ import "./PancakeSwap/IPancakeV2Router02.sol";
 
 import "./DividendDistributor.sol";
 
-contract Quantum is ERC20, Ownable, ERC20Burnable {
+contract Quantum is ERC20, Ownable, ERC20Burnable, Pausable {
     using SafeMath for uint256;
 
     DividendDistributor distributor;
@@ -43,6 +44,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     address public WBNB;
 
     bool public inSwapAndLiquify = false;
+    bool public anitSniperEnabled = true;
 
     struct feeRatesStruct {
       uint256 reflections;
@@ -119,7 +121,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     }
 
 
-    modifier antiSniper(address from, address to, address callee){
+    modifier antiSniper(address from, address to, address callee) {
         uint256 size1;
         uint256 size2;
         uint256 size3;
@@ -129,7 +131,7 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
             size3 := extcodesize(from)
         }
 
-        if(!_excludedFromAntiSniper[from]
+        if(anitSniperEnabled && !_excludedFromAntiSniper[from]
             && !_excludedFromAntiSniper[to] && !_excludedFromAntiSniper[callee]) {
                 require(!(size1 > 0 || size2 > 0 || size3 > 0),"Quantum: Sniper Detected");
             }
@@ -359,6 +361,19 @@ contract Quantum is ERC20, Ownable, ERC20Burnable {
     function setExcludedFromAntiSniper(address _account, bool _excluded)public onlyOwner{
         _excludedFromAntiSniper[_account] = _excluded;
     }
+
+    function toggleAntiSniper() external onlyOwner {
+        anitSniperEnabled = !anitSniperEnabled;
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal
+        whenNotPaused
+        override
+    {
+        super._beforeTokenTransfer(from, to, amount);
+    }
+
     //to receive BNB from pancakeSwapV2Router when swapping
     receive() external payable {}
 

@@ -177,8 +177,9 @@ describe("Quantum Token Scenario", function() {
                         //////////////////////
             // BUY
             console.log("After buy price and liquidity");
-            await token.connect(admin).transfer(users[4].address, '262500' + DECIMAL_ZEROS);
+            await token.connect(admin).transfer(users[4].address, '262501' + DECIMAL_ZEROS);
             console.log(await token.balanceOf(users[4].address));
+            await token.connect(users[4]).transfer(users[6].address, '262501' + DECIMAL_ZEROS);
 
             await panCakeRouter.connect(users[4]).swapExactETHForTokensSupportingFeeOnTransferTokens(
                 0, // accept any amount of Tokens
